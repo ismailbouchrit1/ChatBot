@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Mon Tableau de Bord - Chatbot Socio-Emotionnel{% endblock %}
+{% block body_class %}app-page{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i data-lucide="heart-handshake"></i><span>CSE Chat</span></div>
+            <button class="sidebar-close" id="sidebarClose"><i data-lucide="x"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/chat" class="nav-item"><i data-lucide="message-circle"></i><span>Chat</span></a>
+            <a href="/dashboard" class="nav-item active"><i data-lucide="bar-chart-3"></i><span>Tableau de bord</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar"><i data-lucide="user"></i></div>
+                <div class="user-details">
+                    <span class="user-name">{{ user.full_name }}</span>
+                    <span class="user-role">Eleve</span>
+                </div>
+            </div>
+            <button class="btn-logout" id="logoutBtn"><i data-lucide="log-out"></i></button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <button class="hamburger" id="hamburger"><i data-lucide="menu"></i></button>
+            <div class="topbar-title"><h1>Mon Tableau de Bord</h1></div>
+        </header>
+
+        <div class="dashboard-content">
+            <!-- Stats cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: var(--steel-light-bg);color: var(--steel);">
+                        <i data-lucide="message-square"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalMessages">0</span>
+                        <span class="stat-label">Messages envoyes</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: var(--teal-light-bg);color: var(--teal);">
+                        <i data-lucide="calendar"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="sessionsMonth">0</span>
+                        <span class="stat-label">Sessions ce mois</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emotion chart -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i data-lucide="activity"></i> Evolution emotionnelle (30 jours)</h2>
+                </div>
+                <div class="card-body">
+                    <canvas id="emotionChart" height="300"></canvas>
+                    <p class="empty-state" id="noEmotionData" style="display:none;">
+                        Pas encore assez de donnees. Continue a utiliser le chatbot pour voir ton evolution.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Word cloud -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i data-lucide="cloud"></i> Themes frequents</h2>
+                </div>
+                <div class="card-body">
+                    <div id="studentWordcloud" class="wordcloud-box"></div>
+                    <p class="empty-state" id="noWordcloud" style="display:none;">
+                        Pas encore assez de donnees pour generer le nuage de mots.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i data-lucide="settings"></i> Parametres</h2>
+                </div>
+                <div class="card-body">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">Langue preferee</span>
+                            <span class="setting-desc">Choisir la langue de l'interface</span>
+                        </div>
+                        <select id="langPref" class="form-select">
+                            <option value="fr" {% if user.language_pref == 'fr' %}selected{% endif %}>Francais</option>
+                            <option value="ar" {% if user.language_pref == 'ar' %}selected{% endif %}>Arabe</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">Notifications</span>
+                            <span class="setting-desc">Activer les notifications importantes</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="notifToggle" {% if user.notifications_enabled %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">Exporter mes donnees</span>
+                            <span class="setting-desc">Telecharger l'historique de conversations</span>
+                        </div>
+                        <button class="btn btn-outline btn-sm" id="exportDataBtn">Exporter</button>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">Supprimer mes donnees</span>
+                            <span class="setting-desc">Supprimer tout l'historique de tes conversations</span>
+                        </div>
+                        <button class="btn btn-danger btn-sm" id="deleteDataBtn">Supprimer</button>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">Desactiver mon compte</span>
+                            <span class="setting-desc">Arreter l'acces a mon espace</span>
+                        </div>
+                        <button class="btn btn-outline btn-sm" id="deactivateBtn">Desactiver</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc
+*.db
+*.sqlite3
+instance/
+.vscode/
+.idea/
+venv/
+env/
+node_modules/
+doc_content.txt
+read_doc.py

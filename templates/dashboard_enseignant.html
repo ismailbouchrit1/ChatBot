@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Tableau de Bord Enseignant - Chatbot Socio-Emotionnel{% endblock %}
+{% block body_class %}app-page{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.js"></script>
+<script src="{{ url_for('static', filename='js/teacher.js') }}" defer></script>
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i data-lucide="heart-handshake"></i><span>CSE Chat</span></div>
+            <button class="sidebar-close" id="sidebarClose"><i data-lucide="x"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/teacher" class="nav-item active"><i data-lucide="layout-dashboard"></i><span>Tableau de bord</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar"><i data-lucide="user"></i></div>
+                <div class="user-details">
+                    <span class="user-name">{{ user.full_name }}</span>
+                    <span class="user-role">Enseignant</span>
+                </div>
+            </div>
+            <button class="btn-logout" id="logoutBtn"><i data-lucide="log-out"></i></button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <button class="hamburger" id="hamburger"><i data-lucide="menu"></i></button>
+            <div class="topbar-title"><h1>Tableau de Bord Enseignant</h1></div>
+        </header>
+
+        <div class="dashboard-content">
+            <!-- Class Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: var(--steel-light-bg);color: var(--steel);">
+                        <i data-lucide="users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalStudents">0</span>
+                        <span class="stat-label">Eleves dans la classe</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: var(--teal-light-bg);color: var(--teal);">
+                        <i data-lucide="activity"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="activeStudents">0</span>
+                        <span class="stat-label">Actifs cette semaine</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-card-alert">
+                    <div class="stat-icon" style="background: var(--red-light-bg);color: var(--red);">
+                        <i data-lucide="alert-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="pendingAlerts">0</span>
+                        <span class="stat-label">Alertes en attente</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emotion Distribution -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i data-lucide="pie-chart"></i> Distribution emotionnelle de la classe</h2>
+                </div>
+                <div class="card-body chart-container">
+                    <canvas id="emotionDistChart" height="250"></canvas>
+                </div>
+            </div>
+
+            <!-- Wellbeing indicators -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i data-lucide="heart-pulse"></i> Indicateurs de bien-etre</h2>
+                </div>
+                <div class="card-body">
+                    <div class="wellbeing-meter">
+                        <div class="wellbeing-bar">
+                            <span class="wellbeing-fill" id="classWellbeingFill"></span>
+                        </div>
+                        <div class="wellbeing-value" id="classWellbeingValue">0/10</div>
+                    </div>
+                    <div class="wellbeing-list" id="studentWellbeingList"></div>
+                </div>
+            </div>
+
+            <!-- Themes word cloud -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i data-lucide="cloud"></i> Themes frequents</h2>
+                </div>
+                <div class="card-body">
+                    <div id="teacherWordcloud" class="wordcloud-box"></div>
+                    <p class="empty-state" id="noTeacherWordcloud" style="display:none;">
+                        Pas assez de donnees pour generer le nuage de mots.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Alerts Center -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i data-lucide="bell"></i> Centre de notifications d'alertes</h2>
+                    <div class="card-actions">
+                        <select id="alertFilter" class="form-select form-select-sm">
+                            <option value="">Toutes</option>
+                            <option value="NOUVELLE">Nouvelles</option>
+                            <option value="EN_TRAITEMENT">En traitement</option>
+                            <option value="RESOLUE">Resolues</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="alertsList" class="alerts-list">
+                        <p class="empty-state">Chargement des alertes...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Detail Modal -->
+        <div class="modal-overlay" id="alertModal" style="display:none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2>Fiche d'alerte</h2>
+                    <button class="modal-close" id="closeAlertModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body" id="alertModalBody">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

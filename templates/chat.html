@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Chat - Chatbot Socio-Emotionnel{% endblock %}
+{% block body_class %}app-page{% endblock %}
+{% block head %}
+<script src="{{ url_for('static', filename='js/chat.js') }}" defer></script>
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i data-lucide="heart-handshake"></i>
+                <span>CSE Chat</span>
+            </div>
+            <button class="sidebar-close" id="sidebarClose"><i data-lucide="x"></i></button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/chat" class="nav-item active">
+                <i data-lucide="message-circle"></i><span>Chat</span>
+            </a>
+            <a href="/dashboard" class="nav-item">
+                <i data-lucide="bar-chart-3"></i><span>Tableau de bord</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-section">
+            <h3>Sessions recentes</h3>
+            <div id="sessionList" class="session-list">
+                <!-- Filled by JS -->
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar"><i data-lucide="user"></i></div>
+                <div class="user-details">
+                    <span class="user-name">{{ user.full_name }}</span>
+                    <span class="user-role">Eleve</span>
+                </div>
+            </div>
+            <button class="btn-logout" id="logoutBtn" title="Se deconnecter">
+                <i data-lucide="log-out"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+        <!-- Top bar -->
+        <header class="topbar">
+            <button class="hamburger" id="hamburger"><i data-lucide="menu"></i></button>
+            <div class="topbar-title">
+                <h1>Espace de dialogue</h1>
+            </div>
+            <div class="topbar-actions">
+                <div class="message-counter" id="messageCounter">
+                    <i data-lucide="message-square"></i>
+                    <span id="msgCount">0</span>/60
+                </div>
+                <button class="btn btn-outline btn-sm" id="newSessionBtn">
+                    <i data-lucide="plus"></i> Nouvelle session
+                </button>
+            </div>
+        </header>
+
+        <!-- Emotion selector modal -->
+        <div class="modal-overlay" id="emotionModal" style="display:none;">
+            <div class="modal-card emotion-modal">
+                <h2>Comment te sens-tu aujourd'hui ?</h2>
+                <p>Choisis l'emotion qui correspond le mieux a ton etat actuel</p>
+                <div class="emotion-grid">
+                    <button class="emotion-btn" data-emotion="serein">
+                        <svg viewBox="0 0 48 48" class="emotion-icon"><circle cx="24" cy="24" r="22" fill="#E8F8F5" stroke="#148F77" stroke-width="2"/><circle cx="16" cy="20" r="2.5" fill="#148F77"/><circle cx="32" cy="20" r="2.5" fill="#148F77"/><path d="M16 30 Q24 36 32 30" stroke="#148F77" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+                        <span>Serein</span>
+                    </button>
+                    <button class="emotion-btn" data-emotion="bien">
+                        <svg viewBox="0 0 48 48" class="emotion-icon"><circle cx="24" cy="24" r="22" fill="#EBF5FB" stroke="#2E86C1" stroke-width="2"/><circle cx="16" cy="20" r="2.5" fill="#2E86C1"/><circle cx="32" cy="20" r="2.5" fill="#2E86C1"/><path d="M16 30 Q24 34 32 30" stroke="#2E86C1" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+                        <span>Bien</span>
+                    </button>
+                    <button class="emotion-btn" data-emotion="stresse">
+                        <svg viewBox="0 0 48 48" class="emotion-icon"><circle cx="24" cy="24" r="22" fill="#FEF9E7" stroke="#F39C12" stroke-width="2"/><circle cx="16" cy="20" r="2.5" fill="#F39C12"/><circle cx="32" cy="20" r="2.5" fill="#F39C12"/><path d="M16 32 Q24 28 32 32" stroke="#F39C12" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M12 13 L20 16" stroke="#F39C12" stroke-width="1.5" stroke-linecap="round"/><path d="M36 13 L28 16" stroke="#F39C12" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        <span>Stresse</span>
+                    </button>
+                    <button class="emotion-btn" data-emotion="anxieux">
+                        <svg viewBox="0 0 48 48" class="emotion-icon"><circle cx="24" cy="24" r="22" fill="#FDEBD0" stroke="#E67E22" stroke-width="2"/><ellipse cx="16" cy="20" rx="2.5" ry="3" fill="#E67E22"/><ellipse cx="32" cy="20" rx="2.5" ry="3" fill="#E67E22"/><ellipse cx="24" cy="33" rx="4" ry="3" fill="none" stroke="#E67E22" stroke-width="2"/></svg>
+                        <span>Anxieux</span>
+                    </button>
+                    <button class="emotion-btn" data-emotion="triste">
+                        <svg viewBox="0 0 48 48" class="emotion-icon"><circle cx="24" cy="24" r="22" fill="#EBF5FB" stroke="#5DADE2" stroke-width="2"/><circle cx="16" cy="20" r="2.5" fill="#5DADE2"/><circle cx="32" cy="20" r="2.5" fill="#5DADE2"/><path d="M16 34 Q24 28 32 34" stroke="#5DADE2" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M14 24 L16 22" stroke="#5DADE2" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        <span>Triste</span>
+                    </button>
+                    <button class="emotion-btn" data-emotion="en_colere">
+                        <svg viewBox="0 0 48 48" class="emotion-icon"><circle cx="24" cy="24" r="22" fill="#FDEDEC" stroke="#C0392B" stroke-width="2"/><circle cx="16" cy="20" r="2.5" fill="#C0392B"/><circle cx="32" cy="20" r="2.5" fill="#C0392B"/><path d="M16 34 Q24 28 32 34" stroke="#C0392B" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M11 14 L21 18" stroke="#C0392B" stroke-width="2" stroke-linecap="round"/><path d="M37 14 L27 18" stroke="#C0392B" stroke-width="2" stroke-linecap="round"/></svg>
+                        <span>En colere</span>
+                    </button>
+                    <button class="emotion-btn" data-emotion="fatigue">
+                        <svg viewBox="0 0 48 48" class="emotion-icon"><circle cx="24" cy="24" r="22" fill="#F4ECF7" stroke="#8E44AD" stroke-width="2"/><path d="M12 20 Q16 22 20 20" stroke="#8E44AD" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M28 20 Q32 22 36 20" stroke="#8E44AD" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M18 32 L30 32" stroke="#8E44AD" stroke-width="2" stroke-linecap="round"/></svg>
+                        <span>Fatigue</span>
+                    </button>
+                    <button class="emotion-btn" data-emotion="confus">
+                        <svg viewBox="0 0 48 48" class="emotion-icon"><circle cx="24" cy="24" r="22" fill="#F5EEF8" stroke="#7D3C98" stroke-width="2"/><circle cx="16" cy="20" r="2.5" fill="#7D3C98"/><circle cx="32" cy="20" r="2.5" fill="#7D3C98"/><path d="M18 32 Q24 30 30 34" stroke="#7D3C98" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+                        <span>Confus</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat area -->
+        <div class="chat-container" id="chatContainer">
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-welcome" id="chatWelcome">
+                    <div class="welcome-icon"><i data-lucide="message-circle-heart"></i></div>
+                    <h2>Bienvenue dans ton espace de dialogue</h2>
+                    <p>Je suis la pour t'ecouter. N'hesite pas a me parler de ce qui te preoccupe, te rend heureux, ou simplement de ta journee.</p>
+                </div>
+            </div>
+
+            <!-- Typing indicator -->
+            <div class="typing-indicator" id="typingIndicator" style="display:none;">
+                <div class="typing-bubble">
+                    <div class="typing-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message input -->
+        <div class="chat-input-area">
+            <form id="chatForm" class="chat-form">
+                <div class="input-container">
+                    <textarea id="messageInput" placeholder="Ecris ton message ici..."
+                              rows="1" maxlength="2000" autocomplete="off"></textarea>
+                    <button type="submit" class="send-btn" id="sendBtn" disabled>
+                        <i data-lucide="send"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

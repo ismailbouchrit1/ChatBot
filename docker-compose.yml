@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: chatbot
+      POSTGRES_PASSWORD: chatbot_password
+      POSTGRES_DB: chatbot
+    ports:
+      - '5432:5432'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://chatbot:chatbot_password@db:5432/chatbot
+      FLASK_ENV: development
+    env_file:
+      - .env
+    ports:
+      - '5000:5000'
+    depends_on:
+      - db
+
+volumes:
+  db_data:

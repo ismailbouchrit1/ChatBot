@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block title %}Connexion - Chatbot Socio-Emotionnel{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block body %}
+<div class="login-container">
+    <div class="login-hero">
+        <div class="hero-content">
+            <div class="hero-icon">
+                <i data-lucide="heart-handshake" class="hero-lucide"></i>
+            </div>
+            <h1>Chatbot Socio-Emotionnel</h1>
+            <p>Un espace bienveillant d'ecoute, d'accompagnement et de soutien pour votre parcours scolaire et personnel.</p>
+            <div class="hero-features">
+                <div class="hero-feature">
+                    <i data-lucide="shield-check"></i>
+                    <span>Confidentiel et securise</span>
+                </div>
+                <div class="hero-feature">
+                    <i data-lucide="clock"></i>
+                    <span>Disponible 24h/24</span>
+                </div>
+                <div class="hero-feature">
+                    <i data-lucide="message-circle"></i>
+                    <span>Ecoute bienveillante</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="login-form-section">
+        <div class="lang-toggle" id="langToggle">
+            <button class="lang-btn active" data-lang="fr">FR</button>
+            <button class="lang-btn" data-lang="ar">AR</button>
+        </div>
+
+        <div class="login-card">
+            <div class="login-card-header">
+                <h2 id="loginTitle">Bienvenue</h2>
+                <p id="loginSubtitle">Veuillez vous connecter pour acceder a votre espace</p>
+            </div>
+
+            <form id="loginForm" autocomplete="off">
+                <div class="form-group">
+                    <label for="email" id="emailLabel">Adresse e-mail ou identifiant scolaire</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="mail"></i>
+                        <input type="text" id="email" name="email" required
+                               placeholder="votre.email@school.ma" autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" id="passwordLabel">Mot de passe</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="password" name="password" required
+                               placeholder="Votre mot de passe" autocomplete="current-password">
+                        <button type="button" class="toggle-password" id="togglePassword">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                    <a href="#" class="forgot-link" id="forgotLink">Mot de passe oublie ?</a>
+                </div>
+
+                <div id="loginError" class="error-message" style="display:none;"></div>
+
+                <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
+                    <span id="loginBtnText">Se connecter</span>
+                    <span class="btn-loader" style="display:none;">
+                        <i data-lucide="loader-2" class="spin"></i>
+                    </span>
+                </button>
+            </form>
+
+            <div class="login-notice" id="loginNotice">
+                <i data-lucide="info"></i>
+                <p>Cet espace est strictement confidentiel. Vos conversations sont protegees et chiffrees.</p>
+            </div>
+            <div class="login-footer">
+                <a href="/privacy" class="footer-link">Politique de confidentialite</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Forgot password modal -->
+<div class="modal-overlay" id="forgotModal" style="display:none;">
+    <div class="modal-card modal-sm">
+        <div class="modal-header">
+            <h2>Reinitialiser le mot de passe</h2>
+            <button class="modal-close" id="closeForgotModal"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="forgotForm">
+                <div class="form-group">
+                    <label for="forgotEmail">Adresse e-mail</label>
+                    <input type="email" id="forgotEmail" class="form-input" placeholder="votre.email@school.ma" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" id="cancelForgot">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Envoyer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('loginForm');
+    const errorEl = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+    const btnText = document.getElementById('loginBtnText');
+    const loader = btn.querySelector('.btn-loader');
+
+    // Toggle password visibility
+    document.getElementById('togglePassword').addEventListener('click', () => {
+        const pw = document.getElementById('password');
+        pw.type = pw.type === 'password' ? 'text' : 'password';
+    });
+
+    // Language toggle
+    document.querySelectorAll('.lang-btn').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelectorAll('.lang-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            const lang = b.dataset.lang;
+            if (lang === 'ar') {
+                document.documentElement.lang = 'ar';
+                document.documentElement.dir = 'rtl';
+                document.getElementById('loginTitle').textContent = '\u0645\u0631\u062d\u0628\u0627';
+                document.getElementById('loginSubtitle').textContent = '\u064a\u0631\u062c\u0649 \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644 \u0644\u0644\u0648\u0635\u0648\u0644 \u0625\u0644\u0649 \u0641\u0636\u0627\u0626\u0643';
+                document.getElementById('emailLabel').textContent = '\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a';
+                document.getElementById('passwordLabel').textContent = '\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631';
+                btnText.textContent = '\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644';
+            } else {
+                document.documentElement.lang = 'fr';
+                document.documentElement.dir = 'ltr';
+                document.getElementById('loginTitle').textContent = 'Bienvenue';
+                document.getElementById('loginSubtitle').textContent = 'Veuillez vous connecter pour acceder a votre espace';
+                document.getElementById('emailLabel').textContent = 'Adresse e-mail ou identifiant scolaire';
+                document.getElementById('passwordLabel').textContent = 'Mot de passe';
+                btnText.textContent = 'Se connecter';
+            }
+            lucide.createIcons();
+        });
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorEl.style.display = 'none';
+        btnText.style.display = 'none';
+        loader.style.display = 'inline-flex';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value,
+                }),
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                errorEl.textContent = data.error || 'Erreur de connexion';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            // Store language preference
+            localStorage.setItem('lang', document.querySelector('.lang-btn.active').dataset.lang);
+
+            // Redirect based on role
+            const role = data.user.role;
+            if (role === 'ELEVE') window.location.href = '/chat';
+            else if (role === 'ENSEIGNANT') window.location.href = '/teacher';
+            else if (role === 'ADMIN') window.location.href = '/admin';
+
+        } catch (err) {
+            errorEl.textContent = 'Erreur de connexion au serveur';
+            errorEl.style.display = 'block';
+        } finally {
+            btnText.style.display = 'inline';
+            loader.style.display = 'none';
+            btn.disabled = false;
+        }
+    });
+
+    // Forgot password modal
+    const forgotModal = document.getElementById('forgotModal');
+    const closeForgot = document.getElementById('closeForgotModal');
+    const cancelForgot = document.getElementById('cancelForgot');
+    document.getElementById('forgotLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        forgotModal.style.display = 'flex';
+        lucide.createIcons();
+    });
+    closeForgot.addEventListener('click', () => { forgotModal.style.display = 'none'; });
+    cancelForgot.addEventListener('click', () => { forgotModal.style.display = 'none'; });
+
+    const forgotForm = document.getElementById('forgotForm');
+    forgotForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('forgotEmail').value.trim();
+        if (!email) return;
+        try {
+            const res = await fetch('/api/auth/forgot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Erreur');
+            alert('Si un compte existe, un email a ete envoye.');
+            forgotModal.style.display = 'none';
+        } catch (err) {
+            alert('Erreur lors de la demande.');
+        }
+    });
+});
+</script>
+{% endblock %}

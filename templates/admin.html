@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% block title %}Administration - Chatbot Socio-Emotionnel{% endblock %}
+{% block body_class %}app-page{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i data-lucide="heart-handshake"></i><span>CSE Chat</span></div>
+            <button class="sidebar-close" id="sidebarClose"><i data-lucide="x"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/admin" class="nav-item active"><i data-lucide="shield"></i><span>Administration</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar"><i data-lucide="user"></i></div>
+                <div class="user-details">
+                    <span class="user-name">{{ user.full_name }}</span>
+                    <span class="user-role">Administrateur</span>
+                </div>
+            </div>
+            <button class="btn-logout" id="logoutBtn"><i data-lucide="log-out"></i></button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <button class="hamburger" id="hamburger"><i data-lucide="menu"></i></button>
+            <div class="topbar-title"><h1>Panneau d'Administration</h1></div>
+        </header>
+
+        <div class="dashboard-content">
+            <!-- Stats -->
+            <div class="stats-grid stats-grid-4">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:var(--steel-light-bg);color:var(--steel);"><i data-lucide="users"></i></div>
+                    <div class="stat-info"><span class="stat-value" id="statStudents">0</span><span class="stat-label">Eleves</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:var(--teal-light-bg);color:var(--teal);"><i data-lucide="graduation-cap"></i></div>
+                    <div class="stat-info"><span class="stat-value" id="statTeachers">0</span><span class="stat-label">Enseignants</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:var(--navy-light-bg);color:var(--navy);"><i data-lucide="message-square"></i></div>
+                    <div class="stat-info"><span class="stat-value" id="statConversations">0</span><span class="stat-label">Conversations</span></div>
+                </div>
+                <div class="stat-card stat-card-alert">
+                    <div class="stat-icon" style="background:var(--red-light-bg);color:var(--red);"><i data-lucide="alert-triangle"></i></div>
+                    <div class="stat-info"><span class="stat-value" id="statAlerts">0</span><span class="stat-label">Alertes actives</span></div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tab-bar">
+                <button class="tab-btn active" data-tab="users"><i data-lucide="users"></i> Utilisateurs</button>
+                <button class="tab-btn" data-tab="classes"><i data-lucide="school"></i> Classes</button>
+                <button class="tab-btn" data-tab="alerts"><i data-lucide="bell"></i> Alertes</button>
+                <button class="tab-btn" data-tab="reports"><i data-lucide="file-text"></i> Rapports</button>
+                <button class="tab-btn" data-tab="settings"><i data-lucide="settings"></i> Parametres</button>
+            </div>
+
+            <!-- Users Tab -->
+            <div class="tab-content active" id="tab-users">
+                <div class="card-header">
+                    <h2>Gestion des utilisateurs</h2>
+                    <button class="btn btn-primary btn-sm" id="addUserBtn"><i data-lucide="plus"></i> Ajouter</button>
+                </div>
+                <div class="filter-row">
+                    <select id="userRoleFilter" class="form-select form-select-sm">
+                        <option value="">Tous les roles</option>
+                        <option value="ELEVE">Eleves</option>
+                        <option value="ENSEIGNANT">Enseignants</option>
+                        <option value="ADMIN">Admins</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="usersTable">
+                        <thead>
+                            <tr><th>Nom</th><th>Email</th><th>Role</th><th>Classe</th><th>Statut</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody id="usersBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Classes Tab -->
+            <div class="tab-content" id="tab-classes" style="display:none;">
+                <div class="card-header">
+                    <h2>Gestion des classes</h2>
+                    <button class="btn btn-primary btn-sm" id="addClassBtn"><i data-lucide="plus"></i> Ajouter</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="classesTable">
+                        <thead><tr><th>Nom</th><th>Niveau</th><th>Eleves</th></tr></thead>
+                        <tbody id="classesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Alerts Tab -->
+            <div class="tab-content" id="tab-alerts" style="display:none;">
+                <div class="card-header">
+                    <h2>Toutes les alertes</h2>
+                    <a href="/api/export/alerts" class="btn btn-outline btn-sm"><i data-lucide="download"></i> Exporter CSV</a>
+                    <a href="/api/export/alerts/pdf" class="btn btn-outline btn-sm"><i data-lucide="file-text"></i> Exporter PDF</a>
+                </div>
+                <div id="adminAlertsList" class="alerts-list"></div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div class="tab-content" id="tab-reports" style="display:none;">
+                <div class="card-header"><h2>Rapports globaux</h2></div>
+                <div class="stats-grid">
+                    <div class="dashboard-card">
+                        <div class="card-header"><h3>Alertes par gravite</h3></div>
+                        <div class="card-body chart-container"><canvas id="alertSeverityChart" height="250"></canvas></div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-header"><h3>Classes</h3></div>
+                        <div class="card-body" id="classReport"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="tab-settings" style="display:none;">
+                <div class="card-header"><h2>Parametres systeme</h2></div>
+                <div class="card-body">
+                    <form id="settingsForm">
+                        <div class="form-group">
+                            <label for="alertRecipientDefault">Destinataire par defaut</label>
+                            <input type="text" id="alertRecipientDefault" class="form-input" placeholder="direction@ecole.ma">
+                        </div>
+                        <div class="form-group">
+                            <label for="alertRecipientCritique">Destinataires CRITIQUE (separes par des virgules)</label>
+                            <input type="text" id="alertRecipientCritique" class="form-input" placeholder="direction@ecole.ma, conseiller@ecole.ma">
+                        </div>
+                        <div class="form-group">
+                            <label for="alertRecipientElevee">Destinataires ELEVEE</label>
+                            <input type="text" id="alertRecipientElevee" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="alertRecipientModeree">Destinataires MODEREE</label>
+                            <input type="text" id="alertRecipientModeree" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="dataRetentionDays">Duree de retention (jours)</label>
+                            <input type="number" id="dataRetentionDays" class="form-input" min="0">
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-outline" id="runCleanupBtn">Nettoyer les anciennes donnees</button>
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Modal -->
+        <div class="modal-overlay" id="userModal" style="display:none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2 id="userModalTitle">Ajouter un utilisateur</h2>
+                    <button class="modal-close" id="closeUserModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body">
+                    <form id="userForm">
+                        <input type="hidden" id="editUserId">
+                        <div class="form-group">
+                            <label for="userFullName">Nom complet</label>
+                            <input type="text" id="userFullName" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="userEmail">Email</label>
+                            <input type="email" id="userEmail" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="userPassword">Mot de passe</label>
+                            <input type="password" id="userPassword" class="form-input" placeholder="Laisser vide pour ne pas changer">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="userRole">Role</label>
+                                <select id="userRole" class="form-select" required>
+                                    <option value="ELEVE">Eleve</option>
+                                    <option value="ENSEIGNANT">Enseignant</option>
+                                    <option value="ADMIN">Administrateur</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="userClass">Classe</label>
+                                <select id="userClass" class="form-select"><option value="">Aucune</option></select>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-outline" onclick="document.getElementById('userModal').style.display='none'">Annuler</button>
+                            <button type="submit" class="btn btn-primary" id="saveUserBtn">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Modal -->
+        <div class="modal-overlay" id="classModal" style="display:none;">
+            <div class="modal-card modal-sm">
+                <div class="modal-header">
+                    <h2>Ajouter une classe</h2>
+                    <button class="modal-close" onclick="document.getElementById('classModal').style.display='none'"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body">
+                    <form id="classForm">
+                        <div class="form-group">
+                            <label for="className">Nom de la classe</label>
+                            <input type="text" id="className" class="form-input" required placeholder="Ex: 3eme A">
+                        </div>
+                        <div class="form-group">
+                            <label for="classLevel">Niveau</label>
+                            <select id="classLevel" class="form-select" required>
+                                <option value="College">College</option>
+                                <option value="Qualifiant">Qualifiant</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-outline" onclick="document.getElementById('classModal').style.display='none'">Annuler</button>
+                            <button type="submit" class="btn btn-primary">Creer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
