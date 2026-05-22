@@ -373,7 +373,7 @@ def api_login():
     user.last_login = datetime.now(timezone.utc)
     db.session.commit()
 
-    token = generate_token(user.id, user.role)
+    token = generate_token(str(user.id), user.role)
     resp = make_response(jsonify({
         'message': 'Connexion reussie',
         'user': user.to_dict(),
